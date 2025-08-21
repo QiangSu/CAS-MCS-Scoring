@@ -55,9 +55,6 @@ python scripts/scanpy_pipeline_per_cell.py \
     --output_prefix WT_sample
 ```
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 
 ## 3. Post-Analysis: Cluster Purity Calculation
 
@@ -129,3 +126,6 @@ python scripts/run_integration_analysis.py \
 ```
 Use `python scripts/run_integration_analysis.py --help` to see all available options.
 
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
