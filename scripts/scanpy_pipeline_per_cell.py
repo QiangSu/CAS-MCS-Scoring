@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
 """
 Standalone Python script for single-cell RNA-seq analysis using Scanpy.
 This pipeline uses CellTypist with majority_voting=False for per-cell annotation.
@@ -13,16 +12,12 @@ a. Loads 10x Genomics data.
 b. Performs quality control (QC) and filtering.
 c. Normalizes and log-transforms the data.
 d. Identifies highly variable genes (HVGs).
-e. Scales the data.
-f. Runs Principal Component Analysis (PCA).
-g. Computes a neighborhood graph and performs Leiden clustering.
-h. Generates a UMAP embedding for visualization.
-i. Annotates cell types on a per-cell basis using a CellTypist model.
-j. Exports annotations to CSV and saves the final AnnData object.
+e. Scales the data, runs PCA, computes neighbors, and performs Leiden clustering.
+f. Generates a UMAP embedding for visualization.
+g. Annotates cell types on a per-cell basis using a CellTypist model.
+h. Exports annotations to CSV and saves the final AnnData object.
 """
-
 import os
-import random
 import argparse
 import numpy as np
 import pandas as pd
@@ -30,17 +25,22 @@ import matplotlib.pyplot as plt
 import scanpy as sc
 import celltypist
 from celltypist import models
-from sklearn.metrics import silhouette_score
+
+# <-- CHANGE: Standardized set_seed function for consistency
+def set_seed(seed):
+    """Set random seeds for reproducibility."""
+    import random
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    print(f"Global random seed set to {seed}")
 
 def main(args):
     """Main function to run the Scanpy analysis pipeline."""
 
     # --- 1. Reproducibility & Setup ---
     print("--- Initializing Analysis (Per-Cell Pipeline) ---")
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    sc.settings.njobs = 1  # Enforce single-threaded behavior for determinism in some steps
-    print(f"[INFO] Random seed set to: {args.seed}")
+    set_seed(args.seed) # Call the standardized seed function
 
     sc.settings.verbosity = 3
     sc.logging.print_header()
@@ -65,7 +65,6 @@ def main(args):
     adata.var['mt'] = adata.var_names.str.startswith(args.mito_prefix)
     sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
 
-    # Apply filters
     n_cells_orig, n_genes_orig = adata.shape
     sc.pp.filter_cells(adata, min_genes=args.min_genes)
     sc.pp.filter_cells(adata, max_genes=args.max_genes)
@@ -98,7 +97,6 @@ def main(args):
     model = models.Model.load(args.model_path)
     predictions = celltypist.annotate(adata, model=model, majority_voting=False, mode='best match')
     
-    # Store per-cell labels and confidence scores in adata.obs
     adata.obs['ctpt_label'] = predictions.predicted_labels['predicted_labels'].astype('category')
     if 'conf_score' in predictions.predicted_labels.columns:
         adata.obs['ctpt_confidence'] = predictions.predicted_labels['conf_score']
@@ -112,29 +110,34 @@ def main(args):
     n_labels = len(adata.obs['ctpt_label'].cat.categories)
     sc.pl.umap(adata, color='ctpt_label', legend_loc='on data', 
               title=f'Per-Cell CellTypist Labels ({n_labels} types)',
-              save=f"_{args.output_prefix}_celltypist_per_cell.png", show=False)
+              save=f"_{args.output_prefix}_umap_per_cell.png", show=False)
     plt.close()
     print(f"Saved UMAP plot to {args.output_dir}")
 
-    # Export raw per-cell annotations from CellTypist
-    csv_path_raw = os.path.join(args.output_dir, f"{args.output_prefix}_annotations_per_cell_raw.csv")
-    predictions.predicted_labels.to_csv(csv_path_raw, index=True, header=True)
-    print(f"Raw per-cell annotations exported to: {csv_path_raw}")
+    # <-- CHANGE: Export a curated, final annotation table in addition to the raw one.
+    print("Exporting curated per-cell annotations...")
+    final_obs_cols = ['leiden', 'ctpt_label']
+    if 'ctpt_confidence' in adata.obs.columns:
+        final_obs_cols.append('ctpt_confidence')
+    
+    curated_csv_path = os.path.join(args.output_dir, f"{args.output_prefix}_per_cell_annotations.csv")
+    adata.obs[final_obs_cols].to_csv(curated_csv_path)
+    print(f"Curated per-cell annotations exported to: {curated_csv_path}")
 
-    # Save final AnnData object
-    adata_path = os.path.join(args.output_dir, f"{args.output_prefix}_final_annotated_per_cell.h5ad")
+    # Save final AnnData object with a standardized name
+    adata_path = os.path.join(args.output_dir, f"{args.output_prefix}_final_annotated.h5ad")
     adata.write(adata_path)
     print(f"Final AnnData object saved to: {adata_path}")
     
     print("\n--- Per-Cell Pipeline finished successfully! ---")
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Scanpy pipeline for scRNA-seq analysis with per-cell CellTypist annotation.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter # Shows default values in help message
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     
-    # --- Input/Output Arguments ---
     io_group = parser.add_argument_group('Input/Output')
     io_group.add_argument('--data_dir', type=str, required=True, 
                           help='Path to the directory containing 10x matrix, features, and barcodes files.')
@@ -145,7 +148,6 @@ if __name__ == '__main__':
     io_group.add_argument('--output_prefix', type=str, default='scanpy_analysis', 
                           help='Prefix for all output files.')
     
-    # --- Quality Control Arguments ---
     qc_group = parser.add_argument_group('Quality Control Parameters')
     qc_group.add_argument('--mito_prefix', type=str, default='mt-', 
                           help="Prefix for mitochondrial genes (e.g., 'mt-' for mouse, 'MT-' for human).")
@@ -153,12 +155,12 @@ if __name__ == '__main__':
                           help='Minimum number of genes detected per cell.')
     qc_group.add_argument('--max_genes', type=int, default=7000, 
                           help='Maximum number of genes detected per cell.')
+    # <-- BUG FIX: Changed % to %% to prevent argparse crash on --help
     qc_group.add_argument('--max_mt_pct', type=float, default=10.0, 
-                          help='Maximum percentage of mitochondrial counts allowed per cell.')
+                          help='Maximum percentage%% of mitochondrial counts allowed per cell.')
     qc_group.add_argument('--min_cells', type=int, default=3, 
                           help='Minimum number of cells a gene must be detected in.')
 
-    # --- Analysis Arguments ---
     analysis_group = parser.add_argument_group('Analysis Parameters')
     analysis_group.add_argument('--n_hvgs', type=int, default=10000, 
                                 help='Number of highly variable genes to select for downstream analysis.')
@@ -167,10 +169,10 @@ if __name__ == '__main__':
     analysis_group.add_argument('--leiden_res', type=float, default=0.9, 
                                 help='Resolution parameter for the Leiden clustering algorithm.')
 
-    # --- Reproducibility Argument ---
     repro_group = parser.add_argument_group('Reproducibility')
     repro_group.add_argument('--seed', type=int, default=42, 
                              help='Random seed for PCA, Leiden, and UMAP to ensure deterministic results.')
 
     args = parser.parse_args()
     main(args)
+
