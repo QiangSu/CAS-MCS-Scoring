@@ -51,51 +51,28 @@ cd scanpy-celltypist-pipelines
 
 All pipelines are run from the command line from the project’s root directory.
 
+### 1. Single-Sample Analysis (Majority Voting)
+
 ```bash
-python scripts/calculate_cluster_purity.py \
-    --input_file results/per_cell_output/WT_sample_annotations_per_cell_raw.csv \
-    --output_file results/per_cell_output/WT_sample_cluster_purity_summary.csv
+python scripts/scanpy_pipeline_majority_voting.py \
+    --data_dir data/filtered_feature_bc_matrix \
+    --model_path models/Mouse_Whole_Brain.pkl \
+    --output_dir results/majority_voting_output \
+    --output_prefix WT_sample
 ```
 
-This will generate a file with the following columns:
-- `Consensus_Cluster_Label`
-- `Total_Cells_in_Cluster`
-- `Cells_with_Matching_Individual_Label`
-- `Purity_Percentage`
+### 2. Single-Sample Analysis (Per-Cell)
 
-
-## 4. Two-Sample Integration and DGE Pipeline
-
-This repository includes a comprehensive pipeline, `run_integration_analysis.py`, for the analysis of two or more scRNA-seq samples. The workflow integrates data using Harmony, performs clustering and several layers of annotation, and conducts differential gene expression (DGE) analysis between user-specified conditions.
-
-### Configuration
-
-This pipeline is controlled entirely via command-line arguments and two required configuration files:
-
-**1. Sample Sheet (e.g., `sample_sheet.csv`)**
-A CSV file that tells the script where to find each sample's data. It must contain `sample_id` and `path` columns.
-
-*Example `sample_sheet.csv`:*
-```csv
-sample_id,path
-WT,path/to/your/WT/filtered_matrices/
-Treated,path/to/your/Treated/filtered_matrices/
+```bash
+python scripts/scanpy_pipeline_per_cell.py \
+    --data_dir data/filtered_feature_bc_matrix \
+    --model_path models/Mouse_Whole_Brain.pkl \
+    --output_dir results/per_cell_output \
+    --output_prefix WT_sample
 ```
 
-**2. Manual Annotation Map (e.g., `manual_annotation_map.csv`)**
-A CSV file for mapping Leiden cluster numbers to meaningful biological cell types. It must contain `leiden_cluster` and `cell_type_name` columns.
-
-*Example `manual_annotation_map.csv`:*
-```csv
-leiden_cluster,cell_type_name
-0,Astrocytes
-1,Excitatory Neurons
-2,Oligodendrocytes
-```
-
-### Usage Example
-
-Once your configuration files are ready, you can run the pipeline from the project's root directory.
+### 3. Multi-Sample Integration & DGE
+This pipeline requires two configuration files: a sample_sheet.csv and a manual_annotation_map.csv. See the example files in the root directory for the required format.
 
 ```bash
 python scripts/run_integration_analysis.py \
@@ -109,7 +86,16 @@ python scripts/run_integration_analysis.py \
     --n_pcs 8 \
     --n_hvgs 10000
 ```
-Use `python scripts/run_integration_analysis.py --help` to see all available options.
+Use python scripts/run_integration_analysis.py --help to see all available options.
+
+### 4. Post-Analysis: Cluster Purity Calculation
+This script takes the raw annotation CSV from the per-cell pipeline as input.
+
+```bash
+python scripts/calculate_cluster_purity.py \
+    --input_file results/per_cell_output/WT_sample_annotations_per_cell_raw.csv \
+    --output_file results/per_cell_output/WT_sample_cluster_purity_summary.csv
+```
 
 
 ## License
