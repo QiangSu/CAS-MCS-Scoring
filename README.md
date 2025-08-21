@@ -131,7 +131,7 @@ python simulation/step2_add_barcodes.py \
     --output_dir results/simulation_step2_cellranger_fastq/ \
     --whitelist path/to/your/3M-february-2018.txt.gz \
     --sample_name MySimulatedRun
-
+```
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
