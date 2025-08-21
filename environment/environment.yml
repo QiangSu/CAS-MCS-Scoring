@@ -207,6 +207,26 @@ dependencies:
   - xorg-libxxf86vm=1.1.6=hb9d3cd8_0
   - zipp=3.23.0=pyhd8ed1ab_0
   - zstd=1.5.7=hb8e6e7a_2
+
+  - python=3.10
+  - scanpy=1.9.6
+  - celltypist>=1.7.1
+  - harmonypy>=0.0.10
+  - python-igraph>=0.11.9  # Note: conda package is called python-igraph
+  - leidenalg>=0.10.2
+  - scikit-optimize>=0.10.2
+  - pyyaml>=6.0.2
+  - requests>=2.32.4
+  - click>=8.2.1
+
+    # --- R Packages for Simulation ---
+  - r-base>=4.2
+  - r-argparse
+  - bioconductor-splatter
+  - bioconductor-polyester
+  - bioconductor-biostrings
+
+
   - pip:
       - celltypist==1.7.1
       - charset-normalizer==3.4.2
@@ -221,4 +241,12 @@ dependencies:
       - scikit-optimize==0.10.2
       - texttable==1.7.0
       - urllib3==2.5.0
+
+  - pip:
+      # These packages are less common on Conda or are dependencies
+      # of other pip packages, so we can leave them here.
+      - pyaml==25.7.0
+      - texttable==1.7.0
+
+        
 prefix: /home/data/qs/miniforge3/envs/scanpy-analysis
