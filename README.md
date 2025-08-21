@@ -1,70 +1,55 @@
 # Post-Quantification Single-Cell Analysis using Scanpy and CellTypist
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This repository contains two parallel Python pipelines for the automated analysis and cell type annotation of single-cell RNA-seq data, as described in [Your Paper/Preprint Title]. The analysis is performed using Scanpy, with cell type annotation handled by CellTypist.
+This repository provides a suite of command-line pipelines for the analysis and cell type annotation of single-cell RNA-seq data. The workflows are built using [Scanpy](https://scanpy.readthedocs.io/) and leverage [CellTypist](https://www.celltypist.org/) for automated cell type annotation.
 
-## Pipelines
+The provided scripts cover single-sample analysis, multi-sample integration with batch correction (Harmony), differential gene expression (DGE), and post-analysis quality control.
 
-1.  **Majority Voting (`scanpy_pipeline_majority_voting.py`)**: Assigns a consensus cell type identity to all cells within a pre-computed Leiden cluster.
-2.  **Per-Cell Annotation (`scanpy_pipeline_per_cell.py`)**: Assigns an independent cell type label to each individual cell.
+## Table of Contents
+- [Available Workflows](#available-workflows)
+- [Setup Instructions](#setup-instructions)
+- [Usage](#usage)
+  - [1. Single-Sample Analysis (Majority Voting)](#1-single-sample-analysis-majority-voting)
+  - [2. Single-Sample Analysis (Per-Cell)](#2-single-sample-analysis-per-cell)
+  - [3. Multi-Sample Integration & DGE](#3-multi-sample-integration--dge)
+  - [4. Post-Analysis: Cluster Purity Calculation](#4-post-analysis-cluster-purity-calculation)
+- [Citation](#citation)
+- [License](#license)
 
+## Available Workflows
 
-## Setup
+This repository contains three core analysis pipelines and one post-processing utility script.
+
+### 1. Single-Sample Analysis Pipelines
+For end-to-end analysis of a **single 10x Genomics dataset**. They share a common workflow (QC, normalization, clustering, UMAP) but differ in their annotation strategy.
+
+-   **`scripts/scanpy_pipeline_majority_voting.py`**: Performs clustering-based annotation. All cells within a given Leiden cluster are assigned the same consensus cell type label via a "majority vote".
+-   **`scripts/scanpy_pipeline_per_cell.py`**: Performs per-cell annotation. Each cell is assigned an independent cell type label, which is useful for exploring cellular heterogeneity *within* clusters.
+
+### 2. Multi-Sample Integration & DGE Pipeline
+An advanced workflow for analyzing **two or more datasets**, such as comparing control vs. treated samples.
+
+-   **`scripts/run_integration_analysis.py`**: Integrates multiple samples using Harmony to correct for batch effects. It performs a combined analysis including clustering, annotation, and **differential gene expression (DGE)** tests between specified conditions.
+
+### 3. Post-Analysis Utilities
+A script designed to be run after a primary analysis pipeline is complete.
+
+-   **`scripts/calculate_cluster_purity.py`**: Evaluates annotation consistency from the **per-cell pipeline**. It calculates a "purity score" by measuring the percentage of cells within a cluster whose individual label matches the final consensus label for that cluster.
+
+## Setup Instructions
 
 ### Prerequisites
 - [Conda](https://docs.conda.io/en/latest/miniconda.html) package manager.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/my_scanpy_analysis_project.git
-cd my_scanpy_analysis_project
+git clone https://github.com/QiangSu/scanpy-celltypist-pipelines.git
+cd scanpy-celltypist-pipelines
 ```
-
-### 2. Create the Conda Environment
-This will install all the necessary packages with the correct versions.
-```bash
-conda env create -f environment/environment.yml
-conda activate scanpy-env
-```
-*(The environment name, e.g., `scanpy-env`, will be defined inside your `environment.yml` file).*
-
-### 3. Download Data and Models
-The scripts require raw 10x Genomics count data and a pre-trained CellTypist model. Due to their size, these files are not included in the repository.
-
--   **Data**: Please follow the instructions in `data/README.md` to download and place the data.
--   **Model**: Please follow the instructions in `models/README.md` to download and place the model.
 
 ## Usage
 
-After setting up the environment and downloading the required files, you can run the pipelines from the project root directory.
-
-### Example: Running the Majority Voting Pipeline
-```bash
-python scripts/scanpy_pipeline_majority_voting.py \
-    --data_dir data/filtered_feature_bc_matrix \
-    --model_path models/Mouse_Whole_Brain.pkl \
-    --output_dir results/majority_voting_output \
-    --output_prefix WT_sample
-```
-
-### Example: Running the Per-Cell Pipeline
-```bash
-python scripts/scanpy_pipeline_per_cell.py \
-    --data_dir data/filtered_feature_bc_matrix \
-    --model_path models/Mouse_Whole_Brain.pkl \
-    --output_dir results/per_cell_output \
-    --output_prefix WT_sample
-```
-
-
-## 3. Post-Analysis: Cluster Purity Calculation
-
-After running the per-cell annotation pipeline, you may want to quantify how consistent the individual cell labels are within each final cluster. The `calculate_cluster_purity.py` script is provided for this purpose.
-
-It calculates a "purity score" for each consensus cluster label, defined as the percentage of cells within that cluster whose individual annotation matches the final consensus label. This script is most informative when run on the output of the **per-cell pipeline** (`scanpy_pipeline_per_cell.py`).
-
-### Usage
-
-The script takes the raw per-cell annotation CSV as input and produces a summary CSV as output.
+All pipelines are run from the command line from the project’s root directory.
 
 ```bash
 python scripts/calculate_cluster_purity.py \
