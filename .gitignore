@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints
+
+# Output Directories & Files
+results/
+output/
+*_output/
+*.h5ad
+*.csv
+*.png
+*.pdf
+
+# Data and Models (never commit these)
+data/*
+!data/README.md
+models/*
+!models/README.md
+
+# System files
+.DS_Store
+
