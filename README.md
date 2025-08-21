@@ -57,3 +57,26 @@ python scripts/scanpy_pipeline_per_cell.py \
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+
+## 3. Post-Analysis: Cluster Purity Calculation
+
+After running the per-cell annotation pipeline, you may want to quantify how consistent the individual cell labels are within each final cluster. The `calculate_cluster_purity.py` script is provided for this purpose.
+
+It calculates a "purity score" for each consensus cluster label, defined as the percentage of cells within that cluster whose individual annotation matches the final consensus label. This script is most informative when run on the output of the **per-cell pipeline** (`scanpy_pipeline_per_cell.py`).
+
+### Usage
+
+The script takes the raw per-cell annotation CSV as input and produces a summary CSV as output.
+
+```bash
+python scripts/calculate_cluster_purity.py \
+    --input_file results/per_cell_output/WT_sample_annotations_per_cell_raw.csv \
+    --output_file results/per_cell_output/WT_sample_cluster_purity_summary.csv
+```
+
+This will generate a file with the following columns:
+- `Consensus_Cluster_Label`
+- `Total_Cells_in_Cluster`
+- `Cells_with_Matching_Individual_Label`
+- `Purity_Percentage`
+
