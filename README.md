@@ -98,14 +98,14 @@ Use python scripts/run_integration_analysis.py --help to see all available optio
 ### 4. Annotation Quality and Validation
 This script takes the raw annotation CSV from the per-cell pipeline as input.
 
-4.1 Cluster Purity Calculation
+- 4.1 Cluster Purity Calculation
 This script takes the raw annotation CSV from the per-cell pipeline as input.
 ```bash
 python scripts/calculate_cluster_purity.py \
     --input_file results/per_cell_output/WT_sample_annotations_per_cell_raw.csv \
     --output_file results/per_cell_output/WT_sample_cluster_purity_summary.csv
 ```
-4.2 Annotation Quality Scoring (CAS & MCS)
+- 4.2 Annotation Quality Scoring (CAS & MCS)
 This streamlined utility is ideal for quickly assessing annotation confidence. It requires raw 10x data, a CellTypist model, and a user-provided marker database CSV file (cell_type,markers).
 ```bash
 python scripts/CAS-MCS-Scoring.py \
@@ -120,8 +120,8 @@ python scripts/CAS-MCS-Scoring.py \
 Key Output Files:
 This script is designed to produce two primary scoring tables:
 
-MySample_Scores_cluster_annotation_score.csv: The CAS results table, showing the stability and confidence of each cell type label assigned by CellTypist.
-MySample_Scores_marker_concordance_score.csv: The MCS matrix, showing the concordance score of each Leiden cluster against every known cell type in your marker database.
+-  MySample_Scores_cluster_annotation_score.csv: The CAS results table, showing the stability and confidence of each cell type label assigned by CellTypist.
+-  MySample_Scores_marker_concordance_score.csv: The MCS matrix, showing the concordance score of each Leiden cluster against every known cell type in your marker database.
 A third file containing the final cell-by-cell annotations is also generated for context (MySample_Scores_final_annotations.csv).
 
 ---
