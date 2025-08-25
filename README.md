@@ -35,12 +35,12 @@ An advanced workflow for analyzing **two or more datasets**, such as comparing c
 ### 3. Annotation Quality and Validation
 A script designed to be run after a primary analysis pipeline is complete.
 
--   **`scripts/calculate_cluster_purity.py`**: Evaluates annotation consistency from the **per-cell pipeline**. It calculates a "purity score" by measuring the percentage of cells within a cluster whose individual label matches the final consensus label for that cluster.
+-   **`scripts/CAS-MCS-Scoring.py`**: An end-to-end pipeline that takes **raw 10x data** and produces quantitative scores for cell type annotations. It is the recommended tool for formal benchmarking. It calculates two key metrics:
 
 -   **`scripts/CAS-MCS-Scoring.py`**: A powerful, streamlined utility for quantitative annotation scoring. Given raw 10x data, a CellTypist model, and a marker database, it runs a headless analysis pipeline to calculate two key metrics.
 
--  ***Cluster Annotation Score (CAS): Measures the stability of CellTypist annotations. It is the percentage of cells within a consensus cluster (e.g., all "Astrocytes") that were also assigned the same label individually by CellTypist. A high CAS indicates a stable and confident cluster annotation.
--  ***Marker Concordance Score (MCS): Measures the agreement between de novo cluster markers and a known marker database. It is calculated as the fraction of known markers for a specific cell type that are found in the top N marker genes of a cluster. This helps validate cluster identities beyond automated methods.
+    -  **Cluster Annotation Score (CAS):** Measures the *internal stability* of CellTypist annotations. It is the percentage of cells within a consensus-labeled cluster (e.g., all "Astrocytes") that were also assigned the "Astrocyte" label individually by CellTypist. A high CAS indicates a stable and confident automated annotation.
+    -  **Marker Concordance Score (MCS):** Measures the *internal biological consistency* of a cluster. It is calculated as the **average expression prevalence** of the top 5 *de novo* marker genes for a given cell type. A high MCS indicates that the cluster is well-defined and its marker genes are consistently expressed, supporting a robust annotation.
 
 
 ## Setup Instructions
@@ -115,7 +115,7 @@ python scripts/CAS-MCS-Scoring.py \
     --celltypist_model path/to/your/celltypist_model.pkl \
     --marker_db path/to/your/marker_database.csv \
     --n_pcs 8 \
-    --leiden_res 0.9
+    --resolution 0.9
 ```
 Key Output Files:
 This script is designed to produce two primary scoring tables:
