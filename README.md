@@ -120,8 +120,8 @@ python scripts/CAS-MCS-Scoring.py \
 Key Output Files:
 This script is designed to produce two primary scoring tables:
 
-MySample_Scores_cluster_annotation_scores.csv: The CAS results table, showing the stability and confidence of each cell type label assigned by CellTypist.
-MySample_Scores_dotplot_fractions_ctpt_consensus_prediction_reformatted.csv: The MCS matrix, showing the concordance score of each Leiden cluster against every known cell type in your marker database.
+- MySample_Scores_cluster_annotation_scores.csv: The CAS results table, showing the stability and confidence of each cell type label assigned by CellTypist.
+- MySample_Scores_dotplot_fractions_ctpt_consensus_prediction_reformatted.csv: The MCS matrix, showing the concordance score of each Leiden cluster against every known cell type in your marker database.
 A third file containing the final cell-by-cell annotations is also generated for context (MySample_Scores_final_annotations.csv).
 
 ---
