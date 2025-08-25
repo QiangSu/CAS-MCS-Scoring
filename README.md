@@ -1,9 +1,9 @@
 # Post-Quantification Single-Cell Analysis using Scanpy and CellTypist
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This repository provides a suite of command-line pipelines for the analysis and cell type annotation of single-cell RNA-seq data. The workflows are built using [Scanpy](https://scanpy.readthedocs.io/) and leverage [CellTypist](https://www.celltypist.org/) for automated cell type annotation.
+This repository provides a suite of command-line pipelines for the analysis and cell type annotation of single-cell RNA-seq data. The workflows are built using Scanpy and leverage CellTypist for automated cell type annotation.
 
-The provided scripts cover single-sample analysis, multi-sample integration with batch correction (Harmony), differential gene expression (DGE), and post-analysis quality control.
+The provided scripts cover single-sample analysis, multi-sample integration with batch correction (Harmony), differential gene expression (DGE), and quantitative annotation quality control.
 
 ## Table of Contents
 - [Available Workflows](#available-workflows)
@@ -13,6 +13,7 @@ The provided scripts cover single-sample analysis, multi-sample integration with
   - [2. Single-Sample Analysis (Per-Cell)](#2-single-sample-analysis-per-cell)
   - [3. Multi-Sample Integration & DGE](#3-multi-sample-integration--dge)
   - [4. Post-Analysis: Cluster Purity Calculation](#4-post-analysis-cluster-purity-calculation)
+- [Data Simulation Pipeline]
 - [Citation](#citation)
 - [License](#license)
 
@@ -31,10 +32,16 @@ An advanced workflow for analyzing **two or more datasets**, such as comparing c
 
 -   **`scripts/run_integration_analysis.py`**: Integrates multiple samples using Harmony to correct for batch effects. It performs a combined analysis including clustering, annotation, and **differential gene expression (DGE)** tests between specified conditions.
 
-### 3. Post-Analysis Utilities
+### 3. Annotation Quality and Validation
 A script designed to be run after a primary analysis pipeline is complete.
 
 -   **`scripts/calculate_cluster_purity.py`**: Evaluates annotation consistency from the **per-cell pipeline**. It calculates a "purity score" by measuring the percentage of cells within a cluster whose individual label matches the final consensus label for that cluster.
+
+-   **`scripts/CAS-MCS-Scoring.py`**: A powerful, streamlined utility for quantitative annotation scoring. Given raw 10x data, a CellTypist model, and a marker database, it runs a headless analysis pipeline to calculate two key metrics.
+
+-  ***Cluster Annotation Score (CAS): Measures the stability of CellTypist annotations. It is the percentage of cells within a consensus cluster (e.g., all "Astrocytes") that were also assigned the same label individually by CellTypist. A high CAS indicates a stable and confident cluster annotation.
+-  ***Marker Concordance Score (MCS): Measures the agreement between de novo cluster markers and a known marker database. It is calculated as the fraction of known markers for a specific cell type that are found in the top N marker genes of a cluster. This helps validate cluster identities beyond automated methods.
+
 
 ## Setup Instructions
 
@@ -88,15 +95,34 @@ python scripts/run_integration_analysis.py \
 ```
 Use python scripts/run_integration_analysis.py --help to see all available options.
 
-### 4. Post-Analysis: Cluster Purity Calculation
+### 4. Annotation Quality and Validation
 This script takes the raw annotation CSV from the per-cell pipeline as input.
 
+4.1 Cluster Purity Calculation
+This script takes the raw annotation CSV from the per-cell pipeline as input.
 ```bash
 python scripts/calculate_cluster_purity.py \
     --input_file results/per_cell_output/WT_sample_annotations_per_cell_raw.csv \
     --output_file results/per_cell_output/WT_sample_cluster_purity_summary.csv
 ```
+4.2 Annotation Quality Scoring (CAS & MCS)
+This streamlined utility is ideal for quickly assessing annotation confidence. It requires raw 10x data, a CellTypist model, and a user-provided marker database CSV file (cell_type,markers).
+```bash
+python scripts/CAS-MCS-Scoring.py \
+    --data_dir path/to/your/10x_data/ \
+    --output_dir results/scoring_output/ \
+    --prefix MySample_Scores \
+    --celltypist_model path/to/your/celltypist_model.pkl \
+    --marker_db path/to/your/marker_database.csv \
+    --n_pcs 8 \
+    --leiden_res 0.9
+```
+Key Output Files:
+This script is designed to produce two primary scoring tables:
 
+MySample_Scores_cluster_annotation_score.csv: The CAS results table, showing the stability and confidence of each cell type label assigned by CellTypist.
+MySample_Scores_marker_concordance_score.csv: The MCS matrix, showing the concordance score of each Leiden cluster against every known cell type in your marker database.
+A third file containing the final cell-by-cell annotations is also generated for context (MySample_Scores_final_annotations.csv).
 
 ---
 
@@ -117,7 +143,7 @@ Rscript simulation/step1_simulate_counts_fastq.R \
     --output_dir results/simulation_step1_output \
     --n_cells 15000 \
     --n_groups 10
-
+```
 ### Step 2: Add Barcodes and Create Cell Ranger FASTQs (Python)
 
 The second script takes the raw FASTQs from Step 1, adds real 10x Genomics cell barcodes (from a whitelist) and random UMIs, and formats them into the R1/R2 file structure required by Cell Ranger.
