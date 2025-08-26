@@ -65,7 +65,6 @@ cd CAS-MCS-Scoring
 All pipelines are run from the command line from the project’s root directory.
 
 ### 1. Annotation Quality and Validation
-This script takes the raw annotation CSV from the per-cell pipeline as input.
 
 1.1 Annotation Quality Scoring (CAS & MCS)
 This streamlined utility is ideal for quickly assessing annotation confidence. It requires raw 10x data, a CellTypist model, and a user-provided marker database CSV file (cell_type,markers).
