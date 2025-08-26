@@ -1,25 +1,29 @@
-# Post-Quantification Single-Cell Analysis using Scanpy and CellTypist
+# CAS-MCS-Scoring: A Framework for Quantitative scRNA-seq Annotation
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This repository provides a suite of command-line pipelines for the analysis and cell type annotation of single-cell RNA-seq data. The workflows are built using Scanpy and leverage CellTypist for automated cell type annotation.
+This repository provides a quantitative framework and a suite of command-line pipelines for the analysis and cell type annotation of single-cell RNA-seq data. The project is centered around **`CAS-MCS-Scoring.py`**, a powerful tool for measuring the quality and biological consistency of cell type annotations.
 
-The provided scripts cover single-sample analysis, multi-sample integration with batch correction (Harmony), differential gene expression (DGE), and quantitative annotation quality control.
+The repository also includes supporting pipelines for standard single-sample analysis, multi-sample integration, and the simulation of realistic scRNA-seq datasets for benchmarking.
 
 ## Table of Contents
-- [Available Workflows](#available-workflows)
+- [Project Overview](#project-overview)
 - [Setup Instructions](#setup-instructions)
-- [Usage](#usage)
-  - [1. Single-Sample Analysis (Majority Voting)](#1-single-sample-analysis-majority-voting)
-  - [2. Single-Sample Analysis (Per-Cell)](#2-single-sample-analysis-per-cell)
-  - [3. Multi-Sample Integration & DGE](#3-multi-sample-integration--dge)
-  - [4. Post-Analysis: Cluster Purity Calculation](#4-post-analysis-cluster-purity-calculation)
-- [Data Simulation Pipeline]
+- [Primary Workflow: Quantitative Annotation Scoring](#primary-workflow-quantitative-annotation-scoring)
+- [Supporting Analysis & Simulation Pipelines](#supporting-analysis--simulation-pipelines)
+  - [Single-Sample Analysis](#single-sample-analysis)
+  - [Multi-Sample Integration & DGE](#multi-sample-integration--dge)
+  - [Post-Analysis Utilities](#post-analysis-utilities)
+  - [Data Simulation](#data-simulation)
 - [Citation](#citation)
 - [License](#license)
 
-## Available Workflows
+## Project Overview
 
-This repository contains three core analysis pipelines and one post-processing utility script.
+This project provides a flagship utility for annotation scoring, supported by a collection of robust analysis scripts:
+
+-   **`scripts/CAS-MCS-Scoring.py` (Primary Tool):** An end-to-end pipeline that takes raw 10x data and produces quantitative scores (CAS & MCS) to validate cell type annotations.
+-   **Supporting Analysis Scripts:** Standard workflows for processing single or multiple scRNA-seq samples.
+-   **Simulation Pipeline:** A two-step R/Python pipeline to generate realistic, Cell Ranger-compatible FASTQ files with a known ground truth.
 
 ### 1. Single-Sample Analysis Pipelines
 For end-to-end analysis of a **single 10x Genomics dataset**. They share a common workflow (QC, normalization, clustering, UMAP) but differ in their annotation strategy.
@@ -50,8 +54,8 @@ A script designed to be run after a primary analysis pipeline is complete.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/QiangSu/scanpy-celltypist-pipelines.git
-cd scanpy-celltypist-pipelines
+git clone https://github.com/QiangSu/CAS-MCS-Scoring.git
+cd CAS-MCS-Scoring
 ```
 
 ## Usage
@@ -120,8 +124,8 @@ python scripts/CAS-MCS-Scoring.py \
 Key Output Files:
 This script is designed to produce two primary scoring tables:
 
-MySample_Scores_cluster_annotation_scores.csv: The CAS results table, showing the stability and confidence of each cell type label assigned by CellTypist.
-MySample_Scores_dotplot_fractions_ctpt_consensus_prediction_reformatted.csv: The MCS matrix, showing the concordance score of each Leiden cluster against every known cell type in your marker database.
+- MySample_Scores_cluster_annotation_scores.csv: The CAS results table, showing the stability and confidence of each cell type label assigned by CellTypist.
+- MySample_Scores_dotplot_fractions_ctpt_consensus_prediction_reformatted.csv: The MCS matrix, showing the concordance score of each Leiden cluster against every known cell type in your marker database.
 A third file containing the final cell-by-cell annotations is also generated for context (MySample_Scores_final_annotations.csv).
 
 ---
