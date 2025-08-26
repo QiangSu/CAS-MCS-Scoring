@@ -25,18 +25,7 @@ This project provides a flagship utility for annotation scoring, supported by a 
 -   **Supporting Analysis Scripts:** Standard workflows for processing single or multiple scRNA-seq samples.
 -   **Simulation Pipeline:** A two-step R/Python pipeline to generate realistic, Cell Ranger-compatible FASTQ files with a known ground truth.
 
-### 1. Single-Sample Analysis Pipelines
-For end-to-end analysis of a **single 10x Genomics dataset**. They share a common workflow (QC, normalization, clustering, UMAP) but differ in their annotation strategy.
-
--   **`scripts/scanpy_pipeline_majority_voting.py`**: Performs clustering-based annotation. All cells within a given Leiden cluster are assigned the same consensus cell type label via a "majority vote".
--   **`scripts/scanpy_pipeline_per_cell.py`**: Performs per-cell annotation. Each cell is assigned an independent cell type label, which is useful for exploring cellular heterogeneity *within* clusters.
-
-### 2. Multi-Sample Integration & DGE Pipeline
-An advanced workflow for analyzing **two or more datasets**, such as comparing control vs. treated samples.
-
--   **`scripts/run_integration_analysis.py`**: Integrates multiple samples using Harmony to correct for batch effects. It performs a combined analysis including clustering, annotation, and **differential gene expression (DGE)** tests between specified conditions.
-
-### 3. Annotation Quality and Validation
+### 1. Annotation Quality and Validation
 A script designed to be run after a primary analysis pipeline is complete.
 
 -   **`scripts/CAS-MCS-Scoring.py`**: An end-to-end pipeline that takes **raw 10x data** and produces quantitative scores for cell type annotations. It is the recommended tool for formal benchmarking. It calculates two key metrics:
@@ -45,7 +34,20 @@ A script designed to be run after a primary analysis pipeline is complete.
 
     -  **Cluster Annotation Score (CAS):** Measures the *internal stability* of CellTypist annotations. It is the percentage of cells within a consensus-labeled cluster (e.g., all "Astrocytes") that were also assigned the "Astrocyte" label individually by CellTypist. A high CAS indicates a stable and confident automated annotation.
     -  **Marker Concordance Score (MCS):** Measures the *internal biological consistency* of a cluster. It is calculated as the **average expression prevalence** of the top 5 *de novo* marker genes for a given cell type. A high MCS indicates that the cluster is well-defined and its marker genes are consistently expressed, supporting a robust annotation.
+    
+### 2. Single-Sample Analysis Pipelines
+For end-to-end analysis of a **single 10x Genomics dataset**. They share a common workflow (QC, normalization, clustering, UMAP) but differ in their annotation strategy.
 
+-   **`scripts/scanpy_pipeline_majority_voting.py`**: Performs clustering-based annotation. All cells within a given Leiden cluster are assigned the same consensus cell type label via a "majority vote".
+-   **`scripts/scanpy_pipeline_per_cell.py`**: Performs per-cell annotation. Each cell is assigned an independent cell type label, which is useful for exploring cellular heterogeneity *within* clusters.
+
+### 3. Multi-Sample Integration & DGE Pipeline
+An advanced workflow for analyzing **two or more datasets**, such as comparing control vs. treated samples.
+
+-   **`scripts/run_integration_analysis.py`**: Integrates multiple samples using Harmony to correct for batch effects. It performs a combined analysis including clustering, annotation, and **differential gene expression (DGE)** tests between specified conditions.
+
+### 4. Data Simulation
+This repository also includes a two-step pipeline to generate realistic, ground-truth single-cell RNA-seq data.
 
 ## Setup Instructions
 
@@ -62,54 +64,17 @@ cd CAS-MCS-Scoring
 
 All pipelines are run from the command line from the project’s root directory.
 
-### 1. Single-Sample Analysis (Majority Voting)
-
-```bash
-python scripts/scanpy_pipeline_majority_voting.py \
-    --data_dir data/filtered_feature_bc_matrix \
-    --model_path models/Mouse_Whole_Brain.pkl \
-    --output_dir results/majority_voting_output \
-    --output_prefix WT_sample
-```
-
-### 2. Single-Sample Analysis (Per-Cell)
-
-```bash
-python scripts/scanpy_pipeline_per_cell.py \
-    --data_dir data/filtered_feature_bc_matrix \
-    --model_path models/Mouse_Whole_Brain.pkl \
-    --output_dir results/per_cell_output \
-    --output_prefix WT_sample
-```
-
-### 3. Multi-Sample Integration & DGE
-This pipeline requires two configuration files: a sample_sheet.csv and a manual_annotation_map.csv. See the example files in the root directory for the required format.
-
-```bash
-python scripts/run_integration_analysis.py \
-    --sample_sheet sample_sheet.csv \
-    --manual_annotation_map manual_annotation_map.csv \
-    --celltypist_model models/Mouse_Whole_Brain.pkl \
-    --output_dir results/integration_output \
-    --output_prefix WT_vs_Treated_integrated \
-    --dge_condition Treated \
-    --dge_reference WT \
-    --n_pcs 8 \
-    --n_hvgs 10000
-```
-Use python scripts/run_integration_analysis.py --help to see all available options.
-
-### 4. Annotation Quality and Validation
+### 1. Annotation Quality and Validation
 This script takes the raw annotation CSV from the per-cell pipeline as input.
 
-4.1 Cluster Purity Calculation
+1.1 Cluster Purity Calculation
 This script takes the raw annotation CSV from the per-cell pipeline as input.
 ```bash
 python scripts/calculate_cluster_purity.py \
     --input_file results/per_cell_output/WT_sample_annotations_per_cell_raw.csv \
     --output_file results/per_cell_output/WT_sample_cluster_purity_summary.csv
 ```
-4.2 Annotation Quality Scoring (CAS & MCS)
+1.2 Annotation Quality Scoring (CAS & MCS)
 This streamlined utility is ideal for quickly assessing annotation confidence. It requires raw 10x data, a CellTypist model, and a user-provided marker database CSV file (cell_type,markers).
 ```bash
 python scripts/CAS-MCS-Scoring.py \
@@ -129,6 +94,44 @@ This script is designed to produce two primary scoring tables:
 A third file containing the final cell-by-cell annotations is also generated for context (MySample_Scores_final_annotations.csv).
 
 ---
+
+### 2. Single-Sample Analysis (Majority Voting)
+
+```bash
+python scripts/scanpy_pipeline_majority_voting.py \
+    --data_dir data/filtered_feature_bc_matrix \
+    --model_path models/Mouse_Whole_Brain.pkl \
+    --output_dir results/majority_voting_output \
+    --output_prefix WT_sample
+```
+
+### 3. Single-Sample Analysis (Per-Cell)
+
+```bash
+python scripts/scanpy_pipeline_per_cell.py \
+    --data_dir data/filtered_feature_bc_matrix \
+    --model_path models/Mouse_Whole_Brain.pkl \
+    --output_dir results/per_cell_output \
+    --output_prefix WT_sample
+```
+
+### 4. Multi-Sample Integration & DGE
+This pipeline requires two configuration files: a sample_sheet.csv and a manual_annotation_map.csv. See the example files in the root directory for the required format.
+
+```bash
+python scripts/run_integration_analysis.py \
+    --sample_sheet sample_sheet.csv \
+    --manual_annotation_map manual_annotation_map.csv \
+    --celltypist_model models/Mouse_Whole_Brain.pkl \
+    --output_dir results/integration_output \
+    --output_prefix WT_vs_Treated_integrated \
+    --dge_condition Treated \
+    --dge_reference WT \
+    --n_pcs 8 \
+    --n_hvgs 10000
+```
+Use python scripts/run_integration_analysis.py --help to see all available options.
+
 
 ## Data Simulation Pipeline
 
