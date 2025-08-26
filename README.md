@@ -67,14 +67,7 @@ All pipelines are run from the command line from the project’s root directory.
 ### 1. Annotation Quality and Validation
 This script takes the raw annotation CSV from the per-cell pipeline as input.
 
-1.1 Cluster Purity Calculation
-This script takes the raw annotation CSV from the per-cell pipeline as input.
-```bash
-python scripts/calculate_cluster_purity.py \
-    --input_file results/per_cell_output/WT_sample_annotations_per_cell_raw.csv \
-    --output_file results/per_cell_output/WT_sample_cluster_purity_summary.csv
-```
-1.2 Annotation Quality Scoring (CAS & MCS)
+1.1 Annotation Quality Scoring (CAS & MCS)
 This streamlined utility is ideal for quickly assessing annotation confidence. It requires raw 10x data, a CellTypist model, and a user-provided marker database CSV file (cell_type,markers).
 ```bash
 python scripts/CAS-MCS-Scoring.py \
@@ -94,6 +87,14 @@ This script is designed to produce two primary scoring tables:
 A third file containing the final cell-by-cell annotations is also generated for context (MySample_Scores_final_annotations.csv).
 
 ---
+
+1.2 Cluster Purity Calculation
+This script takes the raw annotation CSV from the per-cell pipeline as input.
+```bash
+python scripts/calculate_cluster_purity.py \
+    --input_file results/per_cell_output/WT_sample_annotations_per_cell_raw.csv \
+    --output_file results/per_cell_output/WT_sample_cluster_purity_summary.csv
+```
 
 ### 2. Single-Sample Analysis (Majority Voting)
 
