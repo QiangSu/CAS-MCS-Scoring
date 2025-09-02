@@ -209,7 +209,7 @@ dependencies:
   - zstd=1.5.7=hb8e6e7a_2
 
   - python=3.10
-  - scanpy=1.9.6
+  - scanpy=1.9.3
   - celltypist>=1.7.1
   - harmonypy>=0.0.10
   - python-igraph>=0.11.9  # Note: conda package is called python-igraph
